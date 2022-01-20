@@ -1,0 +1,55 @@
+---
+title: "Week3-Chocolates"
+author: "Nischal Karki"
+output: html_document
+---
+
+{r}
+library(tidygeocoder) #For retrieving lat,long of countries
+library(ggrepel) #Labels
+library(ggtext)
+library(tidyverse) 
+
+#Load Data
+{r}
+chocolate <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-01-18/chocolate.csv')
+
+#Prepare geo-coded dataset
+{r}
+#Find the number of unique countries that cocoa producers export to
+unique <- as.data.frame(table(distinct(chocolate %>% select(c("company_location","country_of_bean_origin")))$country_of_bean_origin))
+
+#Retrieve only the data for highest exporting countrries: Madagascar
+df <- distinct(chocolate %>% select(c("company_location","country_of_bean_origin")) %>% filter(country_of_bean_origin=="Madagascar")) %>% filter(company_location!=country_of_bean_origin)
+
+#Use geocode to retrieve coordinates of the countries
+locs <- df %>% geocode(company_location,long=x.end,lat=y.end)
+locs1 <- df %>% geocode(country_of_bean_origin,long=x,lat=y)
+locs1 <- left_join(locs,locs1)
+
+#Load worldmap
+{r}
+worldmap <- borders("world", colour="#efede1", fill="#efede1")
+
+#Plot
+#need two different geom_curves for countries to the left and right of Madagascar
+#More here: https://stackoverflow.com/questions/40039955/geom-curve-plot-all-curves-above-zero
+
+ggplot() + 
+  worldmap +
+  geom_curve(data=locs1 %>% filter(x>x.end), aes(x=x,y = y, xend = x.end, yend = y.end),color="gray", curvature = -0.3) +
+  geom_curve(data=locs1 %>% filter(x<x.end), aes(x=x,y = y, xend = x.end, yend = y.end),color="gray", curvature = 0.3) +
+  ggrepel::geom_text_repel(data=locs1,aes(x=x.end,y=y.end,label=company_location),size=3)+
+  geom_point(data=locs1,aes(x=x.end,y=y.end),color="brown",alpha=0.5)+
+  geom_point(aes(x=46.44164,y=-18.92496))+
+  theme_void()+
+  theme(legend.position = "none",
+        plot.background = element_rect(fill = 'white'))+
+  annotate("richtext", x = -240, y = 40, hjust = 0, vjust = 1,
+           label = "**MADAGASCAR**<br><span style = 'font-size:16pt'>exports its cocoa beans <br> to 28 different countries across the globe <br> for making **Chocolates**.</span><br><span style = 'font-size:8pt'>Source: Flavors of Cacao | Viz by Nischal Karki for #TidyTuesday</span>", size = 8, lineheight = 1.1, fill = NA, label.color = NA)
+
+ggsave("E:/choc.png",dpi=320,width=18,height=10)
+
+
+
+
