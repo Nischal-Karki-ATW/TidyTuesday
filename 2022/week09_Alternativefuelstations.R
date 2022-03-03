@@ -51,15 +51,15 @@ renew + nonrenew &
                                                           hjust = 0.5),
                                 plot.subtitle = element_markdown(family="Lato",
                                                                  color="White",
-                                                                 size=12,
+                                                                 size=15,
                                                                  hjust=0.5),
                                 plot.caption = element_text(family="Lato",
                                                            color="gray",
-                                                           size=8)
+                                                           size=10)
                   ))
 
 #save
-ggsave('week09_AlternativeFuelStations.png',width=16,height=10)
+ggsave('week09_AlternativeFuelStations.png',width=20,height=8)
 
 
 
